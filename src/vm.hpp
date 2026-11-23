@@ -16,7 +16,7 @@ public:
 
 	enum actions {PUSH = 1, ADD, SUB, HALT};
 
-	class VmError : std::runtime_error {
+	class VmError : public std::runtime_error {
 		using std::runtime_error::runtime_error;
 	};
 
