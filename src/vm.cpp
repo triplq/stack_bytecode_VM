@@ -71,6 +71,21 @@ int Vm::run() {
 			pc++;
 			break;
 		}
+		case LOAD: {
+			if (_local.size() == 0)
+				throw VmError("local underflow");
+			push(_local.back());
+			_local.pop_back();
+			pc++;
+			break;
+		}
+	 	case STORE: {
+			if (_local.size() + 1 > kMaxLocal)
+				throw VmError("local overflow");
+			_local.push_back(_code[pc + 1]);
+			pc += 2;
+			break;
+	 	}
 		case HALT: {
 			return _stack.back();
 		}

@@ -14,7 +14,7 @@ public:
 	static constexpr unsigned int kMaxStack = 256;
 	static constexpr unsigned int kMaxLocal = 8;
 
-	enum actions {PUSH = 1, ADD, SUB, MUL, DIV, DUP, SWAP, POP, HALT};
+	enum actions {PUSH = 1, ADD, SUB, MUL, DIV, DUP, SWAP, POP, LOAD, STORE, HALT};
 
 	class VmError : public std::runtime_error {
 		using std::runtime_error::runtime_error;

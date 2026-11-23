@@ -26,8 +26,19 @@ TEST(StartText, Div) {
 	EXPECT_THROW(exec({Vm::PUSH, 6, Vm::PUSH, 0, Vm::DIV, Vm::HALT}), std::runtime_error);
 }
 
+TEST(StartText, check) {
+	EXPECT_THROW(exec({Vm::PUSH}), std::runtime_error);
+}
+
 TEST(StartText, DupSwapPop) {
 	EXPECT_THROW(exec({Vm::DUP}), std::runtime_error);
 	EXPECT_THROW(exec({Vm::SWAP}), std::runtime_error);
 	EXPECT_THROW(exec({Vm::POP}), std::runtime_error);
+}
+
+TEST(StartText, LoadStore) {
+	EXPECT_THROW(exec({Vm::STORE}), std::runtime_error);
+	EXPECT_THROW(exec({Vm::LOAD}), std::runtime_error);
+	EXPECT_THROW(exec({Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5}), std::runtime_error);
+	EXPECT_EQ(exec({Vm::STORE, 5, Vm::LOAD, Vm::STORE, 1, Vm::LOAD, Vm::ADD, Vm::HALT}), 6);
 }
