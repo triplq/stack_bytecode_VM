@@ -1,4 +1,3 @@
-#include <exception>
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include "vm.hpp"
@@ -21,4 +20,14 @@ TEST(StartText, FailureOutput) {
 	} catch(...) {
 		FAIL() << "other type of error";
 	}
+}
+
+TEST(StartText, Div) {
+	EXPECT_THROW(exec({Vm::PUSH, 6, Vm::PUSH, 0, Vm::DIV, Vm::HALT}), std::runtime_error);
+}
+
+TEST(StartText, DupSwapPop) {
+	EXPECT_THROW(exec({Vm::DUP}), std::runtime_error);
+	EXPECT_THROW(exec({Vm::SWAP}), std::runtime_error);
+	EXPECT_THROW(exec({Vm::POP}), std::runtime_error);
 }

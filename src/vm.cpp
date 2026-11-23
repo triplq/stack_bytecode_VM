@@ -5,64 +5,78 @@ std::vector<int> Vm::get_stack() { return _stack; };
 int Vm::run() {
 	unsigned int pc = 0;
 
+	auto push = [&](int a){
+		if (_stack.size() + 1 > kMaxStack) 
+			throw VmError("stack overflow");
+		_stack.push_back(a);
+	};
+
+	auto pop = [&]() -> int{
+		if (_stack.size() < 1)
+			throw VmError("stack underflow");
+		int res = _stack.back();
+		_stack.pop_back();
+		return res;
+	};
+
 	while(pc != _code.size()) {
 		switch(_code[pc]) {
-		case PUSH:
-			if (_stack.size() + 1 > kMaxStack) 
-				throw VmError("stack overflow");
-			_stack.push_back(_code[pc+1]);
+		case PUSH: {
+			push(_code[pc+1]);
 			pc += 2;
 			break;
-		case ADD:
-			if (_stack.size() < 2)
-				throw VmError("stack underflow");
-			_stack.push_back(_stack[_stack.size() - 1] + _stack[_stack.size() - 2]);
+		}
+		case ADD: {
+			int a = pop(), b = pop();
+			push(b + a);
 			pc++;
 			break;
-		case SUB:
-			if (_stack.size() < 2)
-				throw VmError("stack underflow");
-			_stack.push_back(_stack[_stack.size() - 2] - _stack[_stack.size() - 1]);
+		}
+		case SUB: {
+			int a = pop(), b = pop();
+			push(b - a);
 			pc++;
 			break;
-		case MUL:
-			if (_stack.size() < 2)
-				throw VmError("stack underflow");
-			_stack.push_back(_stack[_stack.size() - 1] * _stack[_stack.size() - 2]);
+		}
+		case MUL: {
+			int a = pop(), b = pop();
+			push(b * a);
 			pc++;
 			break;
-		case DIV:
-			if (_stack.size() < 2)
-				throw VmError("stack underflow");
-			if (_stack[_stack.size() - 1] == 0)
+		}
+		case DIV: {
+			int a = pop(), b = pop();
+			if (a == 0)
 				throw VmError("division by zero");
-			_stack.push_back(_stack[_stack.size() - 2] / _stack[_stack.size() - 1]);
+			push(b / a);
 			pc++;
 			break;
-		case DUP:
-			if (_stack.size() + 1 > kMaxStack)
-				throw VmError("stack overflow");
+		}
+		case DUP: {
 			if (_stack.size() == 0)
 				throw VmError("stack underflow");
-			_stack.push_back(_stack.back());
+			push(_stack.back());
 			pc++;
 			break;
-		case SWAP:
+		}
+		case SWAP: {
 			if (_stack.size() < 2)
 				throw VmError("stack underflow");
 			std::swap(_stack[_stack.size() - 1], _stack[_stack.size() - 2]);
 			pc++;
 			break;
-		case POP:
-			if (_stack.size() < 1)
-				throw VmError("stack underflow");
-			_stack.pop_back();
+		}
+		case POP: {
+			pop();
 			pc++;
 			break;
-		case HALT:
+		}
+		case HALT: {
 			return _stack.back();
-		default:
+		}
+		default: {
 			throw VmError("not an action");
+		}
 		}
 	}
 
