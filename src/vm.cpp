@@ -20,6 +20,9 @@ int Vm::run() {
 		return res;
 	};
 
+	if (_code.size() == 1) 
+		throw VmError("code underflow");
+
 	while(pc != _code.size()) {
 		if (steps >= _maxSteps)
 			throw VmError("steps overflow");
@@ -90,7 +93,7 @@ int Vm::run() {
 			break;
 	 	}
 		case JMP: {
-			if (_code[pc + 1] > _code.size() - 1 || _code.size() == 1)
+			if (_code[pc + 1] > _code.size() - 1)
 				throw VmError("wrong address to jmp");
 			pc = _code[pc + 1];
 			break;

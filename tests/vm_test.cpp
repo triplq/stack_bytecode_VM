@@ -41,13 +41,13 @@ TEST(StartText, DupSwapPop) {
 TEST(StartText, LoadStore) {
 	EXPECT_THROW(exec({Vm::STORE}), std::runtime_error);
 	EXPECT_THROW(exec({Vm::LOAD}), std::runtime_error);
-	EXPECT_THROW(exec({Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5}), std::runtime_error);
+	EXPECT_THAT([&](){ exec({Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("local overflow")));
 	EXPECT_EQ(exec({Vm::STORE, 5, Vm::LOAD, Vm::STORE, 1, Vm::LOAD, Vm::ADD, Vm::HALT}), 6);
 }
 
 TEST(StartText, JmpJz) {
 	EXPECT_THROW(exec({Vm::JMP, 5}), std::runtime_error);
 	EXPECT_THAT([&](){ exec({Vm::PUSH, 0, Vm::JZ, 5}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("wrong address to jmp")));
-	EXPECT_THAT([&](){ exec({Vm::JMP}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("wrong address to jmp")));
+	EXPECT_THAT([&](){ exec({Vm::JMP}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("code underflow")));
 	EXPECT_THAT([&](){ exec({Vm::JMP, 0}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("steps overflow")));
 }
