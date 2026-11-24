@@ -1,9 +1,11 @@
+#include "gmock/gmock.h"
 #include <gtest/gtest.h>
 #include <stdexcept>
+#include <gmock/gmock.h>
 #include "vm.hpp"
 
-int exec(std::vector<int> code) {
-	Vm virtmachine(std::move(code));
+int exec(std::vector<int> code, int steps = 1'000'000) {
+	Vm virtmachine(std::move(code), steps);
 	return virtmachine.run();
 }
 
@@ -41,4 +43,11 @@ TEST(StartText, LoadStore) {
 	EXPECT_THROW(exec({Vm::LOAD}), std::runtime_error);
 	EXPECT_THROW(exec({Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5, Vm::STORE, 5}), std::runtime_error);
 	EXPECT_EQ(exec({Vm::STORE, 5, Vm::LOAD, Vm::STORE, 1, Vm::LOAD, Vm::ADD, Vm::HALT}), 6);
+}
+
+TEST(StartText, JmpJz) {
+	EXPECT_THROW(exec({Vm::JMP, 5}), std::runtime_error);
+	EXPECT_THAT([&](){ exec({Vm::PUSH, 0, Vm::JZ, 5}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("wrong address to jmp")));
+	EXPECT_THAT([&](){ exec({Vm::JMP}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("wrong address to jmp")));
+	EXPECT_THAT([&](){ exec({Vm::JMP, 0}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("steps overflow")));
 }

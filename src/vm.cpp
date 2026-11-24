@@ -4,6 +4,7 @@ std::vector<int> Vm::get_stack() { return _stack; };
 
 int Vm::run() {
 	unsigned int pc = 0;
+	unsigned int steps = 0;
 
 	auto push = [&](int a){
 		if (_stack.size() + 1 > kMaxStack) 
@@ -20,6 +21,8 @@ int Vm::run() {
 	};
 
 	while(pc != _code.size()) {
+		if (steps >= _maxSteps)
+			throw VmError("steps overflow");
 		switch(_code[pc]) {
 		case PUSH: {
 			push(_code[pc+1]);
@@ -86,6 +89,23 @@ int Vm::run() {
 			pc += 2;
 			break;
 	 	}
+		case JMP: {
+			if (_code[pc + 1] > _code.size() - 1 || _code.size() == 1)
+				throw VmError("wrong address to jmp");
+			pc = _code[pc + 1];
+			break;
+		}
+		case JZ: {
+			int a = pop();
+			if (a == 0) {
+				if (_code[pc + 1] > _code.size() - 1)
+					throw VmError("wrong address to jmp");
+				pc = _code[pc + 1];
+			} else {
+				pc += 2;
+			}
+			break;
+		}
 		case HALT: {
 			return _stack.back();
 		}
@@ -93,6 +113,7 @@ int Vm::run() {
 			throw VmError("not an action");
 		}
 		}
+		steps++;
 	}
 
 	return 0;
