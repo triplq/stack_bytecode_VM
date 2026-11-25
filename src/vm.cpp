@@ -116,9 +116,10 @@ int Vm::run() {
 			break;
 	 	}
 		case JMP: {
-			if (get_next(_code, pc) > _code.size() - 1 || get_next(_code, pc) < 0)
+			int target = get_next(_code, pc); 
+			if (target > _code.size() - 1 || target < 0)
 				throw VmError("wrong address to jmp");
-			pc = get_next(_code, pc);
+			pc = static_cast<unsigned int>(target);
 			break;
 		}
 		case JZ: {
