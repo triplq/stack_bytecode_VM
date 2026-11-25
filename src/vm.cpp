@@ -123,14 +123,15 @@ int Vm::run() {
 		}
 		case JZ: {
 			int a = pop();
-			if (a == 0) {
-				if (get_next(_code, pc) > _code.size() - 1 || get_next(_code, pc) < 0) 
-					throw VmError("wrong address to jmp");
-				pc = get_next(_code, pc);
-			} else {
-				pc += 2;
-			}
-			break;
+		    int target = get_next(_code, pc); 
+		    if (a == 0) {
+		        if (target < 0 || static_cast<size_t>(target) >= _code.size())
+		            throw VmError("wrong address to jmp");
+		        pc = static_cast<unsigned int>(target);
+		    } else {
+		        pc += 2;
+		    }
+		    break;
 		}
 		case HALT: {
 			if (_stack.size() == 0)
