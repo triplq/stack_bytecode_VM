@@ -3,10 +3,12 @@ set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(vm)
+find_package(Boost 1.69 REQUIRED)
 add_compile_options(-fsanitize=address,undefined -g -O1)
 add_link_options(-fsanitize=address,undefined)
 add_library(vm src/vm.cpp)
 target_include_directories(vm PUBLIC src)
+target_link_libraries(vm PUBLIC Boost::headers)
 target_link_options(vm PRIVATE 
                     -Wl, --no-undefined
                     -Wl, --as-needed)

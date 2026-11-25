@@ -1,4 +1,8 @@
 #include "vm.hpp"
+#include <boost/safe_numerics/safe_integer.hpp>
+#include <exception>
+
+using namespace boost::safe_numerics;
 
 std::vector<int> Vm::get_stack() { return _stack; };
 
@@ -20,33 +24,48 @@ int Vm::run() {
 		return res;
 	};
 
-	if (_code.size() == 1) 
-		throw VmError("code underflow");
+	auto get_next = [&](const std::vector<int>& vec, int i) -> int{
+		if (vec.size() == i + 1)
+			throw VmError("heap buffer overflow");
+		return vec[i + 1];
+	};
 
 	while(pc != _code.size()) {
 		if (steps >= _maxSteps)
 			throw VmError("steps overflow");
 		switch(_code[pc]) {
 		case PUSH: {
-			push(_code[pc+1]);
+			push(get_next(_code, pc));
 			pc += 2;
 			break;
 		}
 		case ADD: {
 			int a = pop(), b = pop();
-			push(b + a);
+			try {
+				push(safe<int>(b) + safe<int>(a));
+			} catch(const std::exception& e) {
+				throw VmError("int overflow");
+			}
 			pc++;
 			break;
 		}
 		case SUB: {
 			int a = pop(), b = pop();
-			push(b - a);
+			try {
+				push(safe<int>(b) - safe<int>(a));
+			} catch(const std::exception& e) {
+				throw VmError("int overflow");
+			}
 			pc++;
 			break;
 		}
 		case MUL: {
 			int a = pop(), b = pop();
-			push(b * a);
+			try {
+				push(safe<int>(b) * safe<int>(a));
+			} catch(const std::exception& e) {
+				throw VmError("int overflow");
+			}
 			pc++;
 			break;
 		}
@@ -54,7 +73,11 @@ int Vm::run() {
 			int a = pop(), b = pop();
 			if (a == 0)
 				throw VmError("division by zero");
-			push(b / a);
+			try {
+				push(safe<int>(b) / safe<int>(a));
+			} catch(const std::exception& e) {
+				throw VmError("int overflow");
+			}
 			pc++;
 			break;
 		}
@@ -88,28 +111,30 @@ int Vm::run() {
 	 	case STORE: {
 			if (_local.size() + 1 > kMaxLocal)
 				throw VmError("local overflow");
-			_local.push_back(_code[pc + 1]);
+			_local.push_back(get_next(_code, pc));
 			pc += 2;
 			break;
 	 	}
 		case JMP: {
-			if (_code[pc + 1] > _code.size() - 1)
+			if (get_next(_code, pc) > _code.size() - 1 || get_next(_code, pc) < 0)
 				throw VmError("wrong address to jmp");
-			pc = _code[pc + 1];
+			pc = get_next(_code, pc);
 			break;
 		}
 		case JZ: {
 			int a = pop();
 			if (a == 0) {
-				if (_code[pc + 1] > _code.size() - 1)
+				if (get_next(_code, pc) > _code.size() - 1 || get_next(_code, pc) < 0) 
 					throw VmError("wrong address to jmp");
-				pc = _code[pc + 1];
+				pc = get_next(_code, pc);
 			} else {
 				pc += 2;
 			}
 			break;
 		}
 		case HALT: {
+			if (_stack.size() == 0)
+				throw VmError("stack is empty");
 			return _stack.back();
 		}
 		default: {
@@ -119,5 +144,5 @@ int Vm::run() {
 		steps++;
 	}
 
-	return 0;
+	throw VmError("programm end without HALT");
 };

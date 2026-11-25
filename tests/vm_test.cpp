@@ -48,6 +48,16 @@ TEST(StartText, LoadStore) {
 TEST(StartText, JmpJz) {
 	EXPECT_THROW(exec({Vm::JMP, 5}), std::runtime_error);
 	EXPECT_THAT([&](){ exec({Vm::PUSH, 0, Vm::JZ, 5}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("wrong address to jmp")));
-	EXPECT_THAT([&](){ exec({Vm::JMP}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("code underflow")));
+	EXPECT_THAT([&](){ exec({Vm::JMP}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("heap buffer overflow")));
 	EXPECT_THAT([&](){ exec({Vm::JMP, 0}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("steps overflow")));
+}
+
+TEST(ASan, ASanTest) {
+	EXPECT_THAT([&](){ exec({Vm::PUSH}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("heap buffer overflow")));
+	EXPECT_THAT([&](){ exec({Vm::PUSH, 0, Vm::JMP}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("heap buffer overflow")));
+	EXPECT_THAT([&](){ exec({Vm::PUSH, 1, Vm::POP, Vm::HALT}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("stack is empty")));
+}
+
+TEST(Push, PushTest) {
+	EXPECT_THAT([&](){ exec({Vm::PUSH, 1}); }, testing::ThrowsMessage<std::runtime_error>(testing::HasSubstr("programm end without HALT")));
 }
